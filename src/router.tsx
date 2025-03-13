@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import UploadPage from './pages/UploadPage';
+import Home from './pages/Home';
 
 const rootRoute = createRootRoute({
   component: Root, 
@@ -13,7 +14,7 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/', 
-  component: LandingPage,
+  component: Home,
 });
 
 const loginRoute = createRoute({
