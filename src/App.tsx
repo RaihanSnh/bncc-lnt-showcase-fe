@@ -1,18 +1,11 @@
-import { Link, Outlet } from "@tanstack/react-router"
+import { Outlet } from '@tanstack/react-router';
 
 function App() {
   return (
-    <>
-      <div>
-        <Link to='/'>Landing Page</Link> |
-        <Link to='/login'>Login Page</Link> |
-        <Link to='/register'>Register Page</Link>
-        <Link to='/upload'>Upload Project</Link>
-      </div>
-
-      <Outlet/>
-    </>
-  )
+    <div>
+      <Outlet />
+    </div>
+  );
 }
 
-export default App
+export default App;
