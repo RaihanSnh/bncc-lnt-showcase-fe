@@ -41,14 +41,68 @@ function LandingPage() {
               <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link to="/home" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Projects</Link>
               </motion.li>
-              <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/login" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Login</Link>
-              </motion.li>
-              <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/register" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 flex items-center gap-1">
-                  Register <ChevronRight size={16} />
-                </Link>
-              </motion.li>
+              {(() => {
+                // Check if user is logged in
+                const userJSON = localStorage.getItem('user');
+                if (userJSON) {
+                  try {
+                    const user = JSON.parse(userJSON);
+                    return (
+                      <>
+                        <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Link to="/upload" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Upload Project</Link>
+                        </motion.li>
+                        {user.role === 'admin' && (
+                          <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Link to="/admin/verify" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Admin Panel</Link>
+                          </motion.li>
+                        )}
+                        <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => {
+                              localStorage.removeItem('user');
+                              window.location.reload();
+                            }}
+                            className="font-medium"
+                          >
+                            Logout
+                          </Button>
+                        </motion.li>
+                      </>
+                    );
+                  } catch (err) {
+                    // Invalid user data, show login/register links
+                    return (
+                      <>
+                        <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Link to="/login" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Login</Link>
+                        </motion.li>
+                        <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Link to="/register" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 flex items-center gap-1">
+                            Register <ChevronRight size={16} />
+                          </Link>
+                        </motion.li>
+                      </>
+                    );
+                  }
+                } else {
+                  // Not logged in, show login/register links
+                  return (
+                    <>
+                      <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Link to="/login" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Login</Link>
+                      </motion.li>
+                      <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Link to="/register" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 flex items-center gap-1">
+                          Register <ChevronRight size={16} />
+                        </Link>
+                      </motion.li>
+                    </>
+                  );
+                }
+              })()}
             </ul>
           </nav>
         </div>
@@ -81,16 +135,71 @@ function LandingPage() {
               A platform for BNCC LnT students to showcase their final projects and get feedback from peers across all regions.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-4">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button asChild size="lg" className="rounded-full px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
-                  <Link to="/register" className="flex items-center gap-2">Get Started <ChevronRight size={18} /></Link>
-                </Button>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button asChild variant="outline" size="lg" className="rounded-full px-8 py-6 border-2 hover:bg-blue-50 transition-all duration-300">
-                  <Link to="/login">Log In</Link>
-                </Button>
-              </motion.div>
+              {(() => {
+                // Check if user is logged in
+                const userJSON = localStorage.getItem('user');
+                if (userJSON) {
+                  try {
+                    const user = JSON.parse(userJSON);
+                    return (
+                      <>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button asChild size="lg" className="rounded-full px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
+                            <Link to={user.role === 'admin' ? '/admin/verify' : '/home'} className="flex items-center gap-2">
+                              {user.role === 'admin' ? 'Admin Panel' : 'Browse Projects'} <ChevronRight size={18} />
+                            </Link>
+                          </Button>
+                        </motion.div>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button 
+                            variant="outline" 
+                            size="lg" 
+                            className="rounded-full px-8 py-6 border-2 hover:bg-blue-50 transition-all duration-300"
+                            onClick={() => {
+                              localStorage.removeItem('user');
+                              window.location.reload();
+                            }}
+                          >
+                            Log Out
+                          </Button>
+                        </motion.div>
+                      </>
+                    );
+                  } catch (err) {
+                    // Invalid user data, show default buttons
+                    return (
+                      <>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button asChild size="lg" className="rounded-full px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
+                            <Link to="/register" className="flex items-center gap-2">Get Started <ChevronRight size={18} /></Link>
+                          </Button>
+                        </motion.div>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button asChild variant="outline" size="lg" className="rounded-full px-8 py-6 border-2 hover:bg-blue-50 transition-all duration-300">
+                            <Link to="/login">Log In</Link>
+                          </Button>
+                        </motion.div>
+                      </>
+                    );
+                  }
+                } else {
+                  // Not logged in, show default buttons
+                  return (
+                    <>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button asChild size="lg" className="rounded-full px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
+                          <Link to="/register" className="flex items-center gap-2">Get Started <ChevronRight size={18} /></Link>
+                        </Button>
+                      </motion.div>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button asChild variant="outline" size="lg" className="rounded-full px-8 py-6 border-2 hover:bg-blue-50 transition-all duration-300">
+                          <Link to="/login">Log In</Link>
+                        </Button>
+                      </motion.div>
+                    </>
+                  );
+                }
+              })()}
             </div>
           </motion.div>
         </div>

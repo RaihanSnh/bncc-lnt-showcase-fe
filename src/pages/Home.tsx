@@ -52,8 +52,32 @@ function Home() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        
+        // Process the data to match the expected format
+        const processedProjects = data.map((project: any) => {
+          // Convert backend project to frontend format
+          return {
+            id: project.id.toString(),
+            title: project.project_name,
+            description: project.project_description,
+            thumbnail: project.thumbnail_url ? `http://localhost:8080/${project.thumbnail_url}` : null,
+            status: project.is_verified ? 'APPROVED' : 'PENDING',
+            createdAt: project.created_at,
+            stack: Array.isArray(project.stack) ? project.stack : 
+              (typeof project.stack === 'string' ? 
+                (project.stack ? JSON.parse(project.stack) : []) : []),
+            contributors: Array.isArray(project.contributors) ? project.contributors : 
+              (typeof project.contributors === 'string' ? 
+                (project.contributors ? JSON.parse(project.contributors) : []) : []),
+            githubUrl: project.github_url,
+            websiteUrl: project.website_url,
+            region: project.region,
+            userId: project.user_id
+          };
+        });
+        
         // Only show approved projects
-        const approvedProjects = data.filter((project: Project) => project.status === 'APPROVED');
+        const approvedProjects = processedProjects.filter((project: any) => project.status === 'APPROVED');
         setProjects(approvedProjects);
         setFilteredProjects(approvedProjects);
 

@@ -1,32 +1,32 @@
 export interface User {
   id: string;
-  name: string;
+  username: string;
   email: string;
-  region: 'KMG' | 'ALS' | 'BDG' | 'MLG';
-  role: 'USER' | 'ADMIN';
+  region: string;
+  role: 'user' | 'admin';
 }
 
 export interface Project {
   id: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-  contributors: User[];
-  stack: string[];
-  githubUrl: string;
-  websiteUrl?: string;
-  images: string[];
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  createdAt: string;
-  updatedAt: string;
-  userId: string;
+  user_id: number;
+  project_name: string;
+  project_description: string;
+  thumbnail_url: string;
+  contributors: string; // JSON string
+  stack: string; // JSON string
+  github_url: string;
+  website_url?: string;
+  images?: string[]; // Not in DB, but used in frontend
+  is_verified: boolean;
+  region: string;
+  created_at: string;
 }
 
 export interface Comment {
   id: string;
   content: string;
-  userId: string;
-  projectId: string;
-  createdAt: string;
+  user_id: string;
+  project_id: string;
+  created_at: string;
   user: User;
 }
