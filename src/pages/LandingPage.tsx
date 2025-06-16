@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight, Code, Users, Layers, ExternalLink, Github, Linkedin, Twitter } from 'lucide-react';
+import Navbar from '@/components/Navbar';
 
 function LandingPage() {
   const [scrollY, setScrollY] = useState(0);
@@ -19,94 +20,7 @@ function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 flex flex-col">
-      {/* Navigation - Glass Morphism */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-slate-200/50 shadow-sm">
-        <div className="container mx-auto px-6 py-5 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-                BNCC Showcase
-              </h1>
-            </motion.div>
-          </div>
-          <nav>
-            <ul className="flex space-x-6">
-              <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Home</Link>
-              </motion.li>
-              <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/home" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Projects</Link>
-              </motion.li>
-              {(() => {
-                // Check if user is logged in
-                const userJSON = localStorage.getItem('user');
-                if (userJSON) {
-                  try {
-                    const user = JSON.parse(userJSON);
-                    return (
-                      <>
-                        <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                          <Link to="/upload" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Upload Project</Link>
-                        </motion.li>
-                        {user.role === 'admin' && (
-                          <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Link to="/admin/verify" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Admin Panel</Link>
-                          </motion.li>
-                        )}
-                        <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => {
-                              localStorage.removeItem('user');
-                              window.location.reload();
-                            }}
-                            className="font-medium"
-                          >
-                            Logout
-                          </Button>
-                        </motion.li>
-                      </>
-                    );
-                  } catch (err) {
-                    // Invalid user data, show login/register links
-                    return (
-                      <>
-                        <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                          <Link to="/login" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Login</Link>
-                        </motion.li>
-                        <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                          <Link to="/register" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 flex items-center gap-1">
-                            Register <ChevronRight size={16} />
-                          </Link>
-                        </motion.li>
-                      </>
-                    );
-                  }
-                } else {
-                  // Not logged in, show login/register links
-                  return (
-                    <>
-                      <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Link to="/login" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Login</Link>
-                      </motion.li>
-                      <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Link to="/register" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 flex items-center gap-1">
-                          Register <ChevronRight size={16} />
-                        </Link>
-                      </motion.li>
-                    </>
-                  );
-                }
-              })()}
-            </ul>
-          </nav>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Hero Section with 3D Parallax Effect */}
       <section className="relative overflow-hidden py-24 md:py-32">
@@ -176,7 +90,7 @@ function LandingPage() {
                         </motion.div>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                           <Button asChild variant="outline" size="lg" className="rounded-full px-8 py-6 border-2 hover:bg-blue-50 transition-all duration-300">
-                            <Link to="/login">Log In</Link>
+                            <Link to="/home">Explore Projects</Link>
                           </Button>
                         </motion.div>
                       </>
@@ -193,7 +107,7 @@ function LandingPage() {
                       </motion.div>
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                         <Button asChild variant="outline" size="lg" className="rounded-full px-8 py-6 border-2 hover:bg-blue-50 transition-all duration-300">
-                          <Link to="/login">Log In</Link>
+                          <Link to="/home">Explore Projects</Link>
                         </Button>
                       </motion.div>
                     </>
@@ -301,37 +215,39 @@ function LandingPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { name: "Kemanggisan (KMG)", color: "from-blue-500 to-blue-600" },
-              { name: "Alam Sutera (ALS)", color: "from-indigo-500 to-indigo-600" },
-              { name: "Bandung (BDG)", color: "from-purple-500 to-purple-600" },
-              { name: "Malang (MLG)", color: "from-pink-500 to-pink-600" }
+              { name: "Kemanggisan (KMG)", value: "KMG", color: "from-blue-500 to-blue-600" },
+              { name: "Alam Sutera (ALS)", value: "ALS", color: "from-indigo-500 to-indigo-600" },
+              { name: "Bandung (BDG)", value: "BDG", color: "from-purple-500 to-purple-600" },
+              { name: "Malang (MLG)", value: "MLG", color: "from-pink-500 to-pink-600" }
             ].map((region, index) => (
-              <motion.div
-                key={region.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ 
-                  y: -10,
-                  transition: { duration: 0.2 }
-                }}
-              >
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform perspective-1000">
-                  <div className={`h-24 bg-gradient-to-r ${region.color} flex items-center justify-center`}>
-                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                      <span className="text-white font-bold text-xl">{region.name.split(' ')[1].replace(/[()]/g, '')}</span>
+              <Link key={region.name} to="/home" search={{ region: region.value }}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ 
+                    y: -10,
+                    transition: { duration: 0.2 }
+                  }}
+                  className="h-full"
+                >
+                  <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform perspective-1000 h-full flex flex-col">
+                    <div className={`h-24 bg-gradient-to-r ${region.color} flex items-center justify-center`}>
+                      <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <span className="text-white font-bold text-xl">{region.value}</span>
+                      </div>
+                    </div>
+                    <div className="p-6 text-center flex flex-col flex-grow">
+                      <h4 className="font-bold text-xl mb-2">{region.name}</h4>
+                      <p className="text-gray-600 text-sm flex-grow">Join students from {region.name.split(' ')[0]} campus</p>
+                      <div className="mt-4 text-blue-600 font-semibold flex items-center justify-center">
+                        Explore Projects <ExternalLink size={16} className="ml-2" />
+                      </div>
                     </div>
                   </div>
-                  <div className="p-6 text-center">
-                    <h4 className="font-bold text-xl mb-2">{region.name}</h4>
-                    <p className="text-gray-600 text-sm">Join students from {region.name.split(' ')[0]} campus</p>
-                    <Button variant="ghost" size="sm" className="mt-4 rounded-full">
-                      <ExternalLink size={16} className="mr-2" /> Explore Projects
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>

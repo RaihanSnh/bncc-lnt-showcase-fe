@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link, useSearch } from '@tanstack/react-router';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -19,8 +19,10 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
+import Navbar from '@/components/Navbar';
 
 function Home() {
+  const search = useSearch({ from: '/home' });
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,6 +44,12 @@ function Home() {
     });
     return Array.from(stacks).sort();
   }, [projects]);
+
+  useEffect(() => {
+    if (search.region) {
+      setSelectedRegion(search.region);
+    }
+  }, [search.region]);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -146,81 +154,7 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Navigation */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <h1 className="text-2xl font-bold text-blue-600">BNCC Showcase</h1>
-          </div>
-          <nav>
-            <ul className="flex space-x-4">
-              <li>
-                <Link to="/" className="text-gray-700 hover:text-blue-600">Home</Link>
-              </li>
-              <li>
-                <Link to="/home" className="text-gray-700 hover:text-blue-600 font-medium">Projects</Link>
-              </li>
-              {(() => {
-                // Check if user is logged in
-                const userJSON = localStorage.getItem('user');
-                if (userJSON) {
-                  try {
-                    const user = JSON.parse(userJSON);
-                    return (
-                      <>
-                        <li>
-                          <Link to="/upload" className="text-gray-700 hover:text-blue-600">Upload Project</Link>
-                        </li>
-                        {user.role === 'ADMIN' && (
-                          <li>
-                            <Link to="/admin/verify" className="text-gray-700 hover:text-blue-600">Admin Panel</Link>
-                          </li>
-                        )}
-                        <li>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => {
-                              localStorage.removeItem('user');
-                              window.location.reload();
-                            }}
-                          >
-                            Logout
-                          </Button>
-                        </li>
-                      </>
-                    );
-                  } catch (err) {
-                    // Invalid user data, show login/register links
-                    return (
-                      <>
-                        <li>
-                          <Link to="/login" className="text-gray-700 hover:text-blue-600">Login</Link>
-                        </li>
-                        <li>
-                          <Link to="/register" className="text-gray-700 hover:text-blue-600">Register</Link>
-                        </li>
-                      </>
-                    );
-                  }
-                } else {
-                  // Not logged in, show login/register links
-                  return (
-                    <>
-                      <li>
-                        <Link to="/login" className="text-gray-700 hover:text-blue-600">Login</Link>
-                      </li>
-                      <li>
-                        <Link to="/register" className="text-gray-700 hover:text-blue-600">Register</Link>
-                      </li>
-                    </>
-                  );
-                }
-              })()}
-            </ul>
-          </nav>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">

@@ -35,7 +35,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, isLoading 
   const [contributors, setContributors] = useState<User[]>(project?.contributors ? JSON.parse(project.contributors) : []);
   const [region, setRegion] = useState(project?.region || '');
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
-  const [selectedContributor, setSelectedContributor] = useState('');
+  const [contributorSearch, setContributorSearch] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -202,16 +202,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, isLoading 
     setStack(stack.filter(item => item !== tech));
   };
 
-  const addContributor = () => {
-    if (selectedContributor) {
-      const user = availableUsers.find(u => u.id.toString() === selectedContributor);
-      if (user && !contributors.some(c => c.id === user.id)) {
-        setContributors([...contributors, user]);
-        setSelectedContributor('');
-      }
-    }
-  };
-
   const removeContributor = (userId: any) => {
     // Prevent the original author (first contributor) from being removed
     if (contributors.length > 0 && contributors[0].id === userId) {
@@ -227,6 +217,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, isLoading 
     }
     setContributors(contributors.filter(c => c.id !== userId));
   };
+
+  const filteredUsers = availableUsers.filter(user =>
+    user.username.toLowerCase().includes(contributorSearch.toLowerCase()) &&
+    !contributors.some(c => c.id === user.id)
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -351,42 +346,49 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSubmit, isLoading 
       {/* Contributors */}
       <div className="space-y-2">
         <Label>Contributors</Label>
-        <div className="p-2 border rounded-md bg-gray-50 min-h-[40px]">
-          {contributors.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {contributors.map(c => (
-                <div key={c.id} className="flex items-center gap-2 bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-1 rounded-full">
-                  <span>{c.username}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeContributor(c.id)}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
+        <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px]">
+          {contributors.map((c, index) => (
+            <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-sm bg-gray-200 rounded-full">
+              <span>{c.username}</span>
+              {/* Allow removal if it's not the first contributor */}
+              {index > 0 && (
+                <button
+                  type="button"
+                  onClick={() => removeContributor(c.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <X size={16} />
+                </button>
+              )}
             </div>
-          ) : (
-            <p className="text-sm text-gray-500">The project creator is automatically added. Add more contributors here.</p>
-          )}
+          ))}
         </div>
-        <div className="flex gap-2">
-          <Select onValueChange={setSelectedContributor} value={selectedContributor}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a contributor" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableUsers
-                .filter(u => !contributors.some(c => c.id === u.id))
-                .map(user => (
-                  <SelectItem key={user.id} value={user.id.toString()}>
-                    {user.username} ({user.region})
-                  </SelectItem>
+        <div className="relative">
+          <Input
+            type="text"
+            placeholder="Search for a contributor..."
+            value={contributorSearch}
+            onChange={(e) => setContributorSearch(e.target.value)}
+            className="mt-2"
+          />
+          {contributorSearch && filteredUsers.length > 0 && (
+            <Card className="absolute z-10 w-full mt-1 overflow-hidden border rounded-md shadow-lg">
+              <CardContent className="p-2 max-h-48 overflow-y-auto">
+                {filteredUsers.map(user => (
+                  <div
+                    key={user.id}
+                    className="p-2 cursor-pointer hover:bg-gray-100"
+                    onClick={() => {
+                      setContributors([...contributors, user]);
+                      setContributorSearch('');
+                    }}
+                  >
+                    {user.username}
+                  </div>
                 ))}
-            </SelectContent>
-          </Select>
-          <Button type="button" onClick={addContributor}>Add Contributor</Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
       

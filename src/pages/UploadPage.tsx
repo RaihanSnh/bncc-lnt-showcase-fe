@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import ProjectForm from '@/components/ProjectForm';
 import { User } from '@/pages/ProjectInterfaces';
 import { toast } from 'sonner';
+import Navbar from '@/components/Navbar';
 
 function UploadPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -66,61 +67,7 @@ function UploadPage() {
 
   return (
     <div className="bg-slate-50 min-h-screen">
-      {/* Navigation */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <h1 className="text-2xl font-bold text-blue-600">BNCC Showcase</h1>
-          </div>
-          <nav>
-            <ul className="flex space-x-4">
-              <li>
-                <Link to="/" className="text-gray-700 hover:text-blue-600">Home</Link>
-              </li>
-              <li>
-                <Link to="/home" className="text-gray-700 hover:text-blue-600">Projects</Link>
-              </li>
-              <li>
-                <Link to="/upload" className="text-gray-700 hover:text-blue-600 font-medium">Upload Project</Link>
-              </li>
-              {(() => {
-                // Check if user is logged in
-                const userJSON = localStorage.getItem('user');
-                if (userJSON) {
-                  try {
-                    const user = JSON.parse(userJSON);
-                    return (
-                      <>
-                        {user.role === 'ADMIN' && (
-                          <li>
-                            <Link to="/admin/verify" className="text-gray-700 hover:text-blue-600">Admin Panel</Link>
-                          </li>
-                        )}
-                        <li>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => {
-                              localStorage.removeItem('user');
-                              navigate({ to: '/login' });
-                            }}
-                          >
-                            Logout
-                          </Button>
-                        </li>
-                      </>
-                    );
-                  } catch (err) {
-                    console.error('Error parsing user data:', err);
-                  }
-                }
-                return null;
-              })()}
-            </ul>
-          </nav>
-        </div>
-      </header>
-
+      <Navbar />
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">

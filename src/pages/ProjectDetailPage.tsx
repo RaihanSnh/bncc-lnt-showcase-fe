@@ -7,6 +7,7 @@ import ImageSlideshow from '@/components/ImageSlideshow';
 import CommentSection from '@/components/CommentSection';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Github, Globe } from 'lucide-react';
+import Navbar from '@/components/Navbar';
 
 // Helper function to parse JSON strings safely
 const parseJsonField = (jsonString: string | null | undefined, defaultValue: any = []) => {
@@ -113,19 +114,7 @@ function ProjectDetailPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-sm shadow-sm">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/home">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Projects
-            </Link>
-          </Button>
-          <h1 className="text-lg font-semibold text-gray-800 truncate">{project.project_name}</h1>
-          <div className="w-24"></div> {/* Spacer */}
-        </div>
-      </header>
-
+      <Navbar />
       <motion.main
         variants={containerVariants}
         initial="hidden"
@@ -151,14 +140,14 @@ function ProjectDetailPage() {
             >
               {project.project_name}
             </motion.h1>
-            <motion.p 
+            <motion.div 
               className="text-lg md:text-xl mt-2 drop-shadow-md"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
               <Badge variant="secondary">{project.region}</Badge>
-            </motion.p>
+            </motion.div>
           </div>
         </motion.div>
 
