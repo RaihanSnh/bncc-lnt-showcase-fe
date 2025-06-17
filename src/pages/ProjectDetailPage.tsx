@@ -7,7 +7,8 @@ import ImageSlideshow from '@/components/ImageSlideshow';
 import CommentSection from '@/components/CommentSection';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Github, Globe } from 'lucide-react';
-import Navbar from '@/components/Navbar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { getFullImageUrl } from '@/lib/utils';
 
 // Helper function to parse JSON strings safely
 const parseJsonField = (jsonString: string | null | undefined, defaultValue: any = []) => {
@@ -22,9 +23,9 @@ const parseJsonField = (jsonString: string | null | undefined, defaultValue: any
   }
 };
 
-// Helper to get full image URL
-const getFullImageUrl = (url: string | null | undefined) => {
-  if (!url) return 'https://via.placeholder.com/1280x720?text=No+Image';
+// Helper to get full avatar URL
+const getFullAvatarUrl = (url: string | null | undefined) => {
+  if (!url) return undefined;
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url;
   }
@@ -109,12 +110,25 @@ function ProjectDetailPage() {
 
   const stack = parseJsonField(project.stack, []);
   const contributors = parseJsonField(project.contributors, []);
-  const projectImages = (project.images || []).map(getFullImageUrl);
+  const projectImagesRaw = parseJsonField(project.images, []);
+  const projectImages = (projectImagesRaw || []).map(getFullImageUrl);
   const thumbnailUrl = getFullImageUrl(project.thumbnail_url);
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <Navbar />
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-sm shadow-sm">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/home">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Projects
+            </Link>
+          </Button>
+          <h1 className="text-lg font-semibold text-gray-800 truncate">{project.project_name}</h1>
+          <div className="w-24"></div> {/* Spacer */}
+        </div>
+      </header>
+
       <motion.main
         variants={containerVariants}
         initial="hidden"
@@ -207,9 +221,10 @@ function ProjectDetailPage() {
           <div className="flex flex-wrap gap-4">
             {contributors.length > 0 ? contributors.map((c: User) => (
               <div key={c.id} className="flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm border">
-                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-600">
-                  {c.username.substring(0, 2).toUpperCase()}
-                </div>
+                <Avatar>
+                  <AvatarImage src={getFullAvatarUrl(c.profile_image_url)} />
+                  <AvatarFallback>{c.username.substring(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
                 <div>
                   <p className="font-semibold text-gray-900">{c.username}</p>
                   <p className="text-sm text-gray-500">{c.region}</p>

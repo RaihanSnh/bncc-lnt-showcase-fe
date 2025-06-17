@@ -1,9 +1,10 @@
 export interface User {
-  id: string;
+  id: number;
   username: string;
   email: string;
   region: string;
-  role: 'user' | 'admin';
+  role: string;
+  profile_image_url?: string;
 }
 
 export interface Project {
@@ -11,22 +12,22 @@ export interface Project {
   user_id: number;
   project_name: string;
   project_description: string;
-  thumbnail_url: string;
-  contributors: string; // JSON string
-  stack: string; // JSON string
+  thumbnail_url: string | null;
   github_url: string;
   website_url?: string;
-  images?: string[]; // Not in DB, but used in frontend
+  stack: string | string[];
+  contributors: string | User[];
+  created_at: string;
   is_verified: boolean;
   region: string;
-  created_at: string;
+  images?: string[];
 }
 
 export interface Comment {
-  id: string;
-  content: string;
-  user_id: string;
-  project_id: string;
+  id: number;
+  project_id: number;
+  user_id: number;
+  comment_text: string;
   created_at: string;
   user: User;
 }

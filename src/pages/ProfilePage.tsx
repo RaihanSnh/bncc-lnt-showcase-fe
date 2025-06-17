@@ -1,131 +1,269 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { Button } from "@/components/ui/button";
+import { User } from '@/pages/ProjectInterfaces';
+import Navbar from '@/components/Navbar';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from 'sonner';
+import Cropper, { type Point, type Area } from 'react-easy-crop';
+import 'react-easy-crop/react-easy-crop.css';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from 'sonner';
-import Navbar from '@/components/Navbar';
-import { User } from '@/pages/ProjectInterfaces';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import getCroppedImg from '@/lib/cropImage';
 
 function ProfilePage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const userJSON = localStorage.getItem('user');
-    if (userJSON) {
-      const user = JSON.parse(userJSON);
-      setCurrentUser(user);
-      setUsername(user.username);
-      setEmail(user.email);
-    }
+  // Cropper State
+  const [imgSrc, setImgSrc] = useState('');
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [open, setOpen] = useState(false);
+
+  // Form state
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [region, setRegion] = useState('');
+
+  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const userJson = localStorage.getItem('user');
+    if (userJson) {
+      const user = JSON.parse(userJson);
+      setCurrentUser(user);
+      setUsername(user.username);
+      setRegion(user.region);
+    } else {
+      navigate({ to: '/login' });
+    }
+  }, [navigate]);
+
+  const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        setImgSrc(reader.result?.toString() || '');
+        setOpen(true);
+      });
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+
+  const showCroppedImage = useCallback(async () => {
+    try {
+      if (!imgSrc || !croppedAreaPixels) {
+        return;
+      }
+      const croppedImage = await getCroppedImg(
+        imgSrc,
+        croppedAreaPixels
+      );
+      
+      if (!croppedImage) {
+        toast.error('Failed to crop image.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('profile_picture', croppedImage, 'profile.png');
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication token not found. Please login again.');
+        return;
+      }
+  
+      const promise = () => new Promise(async (resolve, reject) => {
+          const response = await fetch('http://localhost:8080/user/profile-picture', {
+              method: 'POST',
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+              },
+              body: formData,
+          });
+  
+          if (!response.ok) {
+              const errorData = await response.json();
+              reject(new Error(errorData.error || 'Failed to upload profile picture.'));
+          } else {
+              const result = await response.json();
+              if (currentUser) {
+                  const updatedUser = { ...currentUser, profile_image_url: result.profileImageURL };
+                  setCurrentUser(updatedUser);
+                  localStorage.setItem('user', JSON.stringify(updatedUser));
+              }
+              setOpen(false);
+              resolve(result);
+          }
+      });
+  
+      toast.promise(promise, {
+        loading: 'Uploading profile picture...',
+        success: 'Profile picture updated successfully!',
+        error: (err: Error) => err.message,
+      });
+
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  }, [imgSrc, croppedAreaPixels, currentUser]);
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match.");
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Authentication token not found. Please login again.');
       return;
     }
 
-    setIsLoading(true);
-
-    const updateData: any = {
-      username,
-      email,
+    const payload: { username: string, region: string, password?: string } = {
+        username,
+        region,
     };
 
     if (password) {
-      updateData.password = password;
+        payload.password = password;
     }
-    
-    const token = localStorage.getItem('token');
 
     const promise = () => new Promise(async (resolve, reject) => {
-      const response = await fetch('http://localhost:8080/user/profile', { // Assuming this endpoint exists
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(updateData),
-      });
+        const response = await fetch('http://localhost:8080/user/profile', {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        reject(new Error(data.error || 'Failed to update profile.'));
-      } else {
-        // Update localStorage with new user data
-        localStorage.setItem('user', JSON.stringify(data.user));
-        setCurrentUser(data.user);
-        toast.success('Profile updated successfully!');
-        resolve(data);
-      }
+        if (!response.ok) {
+            const errorData = await response.json();
+            reject(new Error(errorData.error || 'Failed to update profile.'));
+        } else {
+            const result = await response.json();
+            setCurrentUser(result.user);
+            localStorage.setItem('user', JSON.stringify(result.user));
+            setPassword(''); // Clear password field
+            resolve(result);
+        }
     });
 
     toast.promise(promise, {
-      loading: 'Updating profile...',
-      success: 'Profile updated!',
-      error: (err) => err.message,
+        loading: 'Updating profile...',
+        success: 'Profile updated successfully!',
+        error: (err: Error) => err.message,
     });
-
-    setIsLoading(false);
   };
-
-  if (!currentUser) {
-    return (
-      <>
-        <Navbar />
-        <div className="container mx-auto text-center py-10">
-          <p>Loading user profile...</p>
-        </div>
-      </>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <div className="container mx-auto py-10 flex justify-center">
-        <Card className="w-full max-w-2xl">
-          <CardHeader>
-            <CardTitle>Edit Profile</CardTitle>
-            <CardDescription>Update your account details below.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleUpdateProfile} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-              <hr />
-              <p className="text-sm text-gray-500">Only fill in the password fields if you want to change your password.</p>
-              <div className="space-y-2">
-                <Label htmlFor="password">New Password</Label>
-                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-              </div>
-              <div className="flex justify-end">
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'Updating...' : 'Update Profile'}
+      <main className="container mx-auto px-4 py-8">
+        {currentUser && (
+          <div className="max-w-2xl mx-auto grid gap-8">
+            <div className="p-6 bg-white rounded-lg shadow-sm flex items-center space-x-6">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={currentUser.profile_image_url} alt={currentUser.username} />
+                <AvatarFallback>{currentUser.username.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-2xl font-bold">{currentUser.username}</h1>
+                <p className="text-gray-500">{currentUser.email}</p>
+                 <p className="text-gray-500">Region: {currentUser.region}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Change Profile Picture
                 </Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={onSelectFile}
+                  className="hidden"
+                  accept="image/png, image/jpeg"
+                />
               </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+            </div>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle>Edit Profile</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleProfileUpdate} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="username">Username</Label>
+                            <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="password">New Password</Label>
+                            <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Change password if you want to" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="region">Region</Label>
+                            <Select value={region} onValueChange={setRegion}>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Select region" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                <SelectItem value="KMG">KMG (Kemanggisan)</SelectItem>
+                                <SelectItem value="ALS">ALS (Alam Sutera)</SelectItem>
+                                <SelectItem value="BDG">BDG (Bandung)</SelectItem>
+                                <SelectItem value="MLG">MLG (Malang)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <Button type="submit">Save Changes</Button>
+                    </form>
+                </CardContent>
+            </Card>
+          </div>
+        )}
+      </main>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Crop your new profile picture</DialogTitle>
+            <DialogDescription>
+              Adjust the image below to select the perfect crop for your new profile picture.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="relative h-64">
+            <Cropper
+              image={imgSrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={1}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
+              cropShape="round"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={showCroppedImage}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
